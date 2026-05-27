@@ -30,7 +30,8 @@ def menu():
     print("0.Exit")
     print("\n" + "=" * 45)
 
-def get_time():
+#από κατώ είναι κάποιες βοηθητικές συναρτήσεις ώστε να είναι πιο καθαρό το πρόγραμμα.
+def get_time(user):
     while True:
         try:
             time = float(input("Time:"))
@@ -66,19 +67,34 @@ def get_type():
         else:
             print("Please type only values between 0-1.")
 
+def input_user():
+    username = input("Please enter your username")
+    while True:
+        try:
+            total = int(input("Please input your total available time this week in the form of hours "))
+        except ValueError:
+            print("You inserted a wrong value.Try again.")
+            continue
+        if total >= 0 and total <= 119:  # ο μέγιστος συνολικός χρόνος που μπορεί κάποιος να έχει μέσα σε μια εβδομάδα πλην τον χρόνο για ύπνο
+            break
+        else:
+            print("Wrong value inserted")
+    return User(username, total)
 
-
-def add(user):
+def add(user):   #εδώ εισάγουμε activities
     print("Please input your activity details")
     name = input("Name:")
     acttype=get_type()
-    time=get_time()
+    time=get_time(user)
     importance=get_importance()
     activity = Activity(name, acttype, time, importance)
     user.add_activity(activity)
     
 
-def edit(user):
+def edit(user):      #εδώ κάνουμε τροποποίηση των activities.
+    if len(user.activities) == 0:
+        print("No activities found to edit.")
+        return
     key = 0
     while True:
         master = False
@@ -93,59 +109,61 @@ def edit(user):
             if key == 0:
                 while True:
                     answer = input(
-                        "Sorry didnt find the activity you were looking for.Would you like to try again(yes/no):")
+                        "Sorry didnt find the activity you were looking for.Would you like to try again(yes/no):")   #σε περίπτωση που δεν βρεθεί η  activity  βάζω την επιλογή να μπορεί ο χρήστης να την ξαναψάξει.
                     if answer.lower() == "yes" or answer.lower() == "no":
                         break
                     else:
                         print("Please type either yes or no.")
                 if answer.lower() == "no":
                     master = True
+                    break
             if key == 1:
                 break
         if master == True:
-            break
-        key = 0
-        while key == 0:
-            try:
-                position = int(input("Please input which field you would like to be modified(1-4)"))
-            except ValueError:
-                print("Thats not an accepted value.")
-                continue
+            return
+        while True:
+            while True:
+                try:
+                    position = int(input("Please input which field you would like to be modified(1-4)"))         #Εδώ κάνουμε τροποποίηση των πεδίων της  activity.
+                except ValueError:
+                    print("Thats not an accepted value.")
+                    continue
+                if position<1 or position>4:
+                    print("Please only input values between 1-4")
+                    continue
+                else:
+                    break
             if position == 1:
                 found.name = input("Please enter the activities new name")
-                key = 1
-                break
             elif position == 2:
                found.type=get_type()
-               key=1
-               break
             elif position == 3:
-                found.time=get_time()
-                key=1
-                break
+                found.time=get_time(user)
             elif position == 4:
                 found.importance=get_importance()
-                key=1
-                break
-        while True:
-            answer = input("Would you like to continue editing the activity(yes/no):")
-            if answer.lower() == "yes" or answer.lower() == "no":
-                break
-            else:
-                print("Please enter only yes or no")
-        if answer.lower() == "no":
-            break
+            while True:
+                answer = input("Would you like to continue editing the activity(yes/no):")        #Εδώ αμα ο χρήστης θέλει να συνεχίσει την τροποποίηση.
+                if answer.lower() == "yes" or answer.lower() == "no":
+                    break
+                else:
+                    print("Please enter only yes or no")
+            if answer.lower() == "no":
+                return
 
-def delete(user):
+
+def delete(user):       #Εδώ κάνουμε διαγραφή των activities.
+    if len(user.activities) == 0:
+        print("No activities found to delete.")
+        return
     while True:
         answer=input("Please input the name of the activity you would like to delete")
         key=0
         for activity in user.activities:
-            if activity.name == answer:
+            if activity.name.lower() == answer.lower():
                 key=key+1
         if key==0 :
             while True:
-                print("No activity with the name:",answer,"was found.Would you like to search the activity with its details(Yes/No)?")
+                print("No activity with the name:",answer,"was found.Would you like to search the activity with its details(Yes/No)?")     #Εδώ άμα δεν βρεθεί το activity έχω βάλει μια λειτουργία ώστε να μπορούμε να ψάξουμε την  activity με τις λεπτομέριες τις.
                 cont=input()
                 if cont.lower() != "yes" and cont.lower() != "no":
                     print("Please type only Yes or No.")
@@ -155,7 +173,7 @@ def delete(user):
                 print("Please input the information of the missing activity")
                 acttype=get_type()
                 importance=get_importance()
-                time=get_time()
+                time=get_time(user)
                 num=1
                 print("The activities found with the specific details are the following")
                 for activity in user.activities:
@@ -170,10 +188,10 @@ def delete(user):
                     while True:
                         name=input("Which is the activities name?")
                         for activity in user.activities:
-                            if activity.name== name:
+                            if activity.name.lower()== name.lower():
                                 user.activities.remove(activity)
                                 num2=True
-                                break
+                                return
                         if num2 == True:
                             break
                         else:
@@ -182,9 +200,10 @@ def delete(user):
                 break
         elif key ==1:
             for activity in user.activities:
-                if activity.name == answer:
+                if activity.name.lower() == answer.lower():
                     user.activities.remove(activity)
                     print("The activity was removed successfully")
+
         else:
             while True:
                 cont=input("There are multiple activities with the same name.Would you like to remove them all?")
@@ -193,11 +212,11 @@ def delete(user):
                 else:
                     print("Please type only yes/no.")
             if cont.lower()=="yes":
-                user.activities = [a for a in user.activities if a.name != answer]    #δεν μπορούμε να σβύσουμε πολλά  activities  όταν κάνουμε προσπέλαση με τον γνωστό τρόπο
+                user.activities = [a for a in user.activities if a.name.lower() != answer.lower()]    #δεν μπορούμε να σβήσουμε πολλά  activities  όταν κάνουμε προσπέλαση με τον γνωστό τρόπο
             else:
-                print("Please input the time,importance of the activity")   # Δεν χρειαζόμαστε τον τύπο της δραστηριότητας διότι θεωριτικά είναι όλες ίδιες.
+                print("Please input the time,importance of the activity")   # Δεν χρειαζόμαστε τον τύπο της δραστηριότητας διότι θεωρητικά είναι όλες ίδιες.
                 importance=get_importance()
-                time=get_time()
+                time=get_time(user)
                 master=0   #θέλω να βάλω έναν τρόπο να μπορώ να φύγω από τις επαναλήψεις
                 while True:
                     cont=0
@@ -214,7 +233,7 @@ def delete(user):
                         if temp.lower() == "yes":
                             print("Please input the time,importance of the activity")
                             importance = get_importance()
-                            time = get_time()
+                            time = get_time(user)
                             continue
                         else:
                             master = 1
@@ -237,7 +256,7 @@ def delete(user):
                 if master==1:
                     break
 
-def showall(user):
+def showall(user):     #Εδώ δείχνουμε όλες τις activities.
     if len(user.activities) == 0:
         print("No activities found.")
         return
@@ -250,7 +269,7 @@ def showall(user):
         print("Importance:", activity.importance)
         print("-" * 20)
 
-def showallbycat(user):
+def showallbycat(user):        #Εδώ δείχνουμε όλες τις activities  ανά κατηγορία.
     if len(user.activities) == 0:
         print("No activities found.")
         return
@@ -279,7 +298,7 @@ def showallbycat(user):
     if free == False:
         print("There are no free time  activities in the system.")
 
-def stats(user):
+def stats(user):    #Εδώ δείχνουμε τα στατιστικά των activities.
     if len(user.activities) == 0:
         print("No activities found.")
         return
@@ -309,49 +328,17 @@ def stats(user):
     avgimport=avgimport/countavg
     remaintime=user.total_hours-(choretime+freetime)
     if remaintime<0 :
-        print("WARNING:Weekly schedule overload detected.")
+        print("WARNING:Weekly schedule overload detected.")          #Σε περίπτωση overload ρωτάμε τον χρήστη άμα θέλει να συνεχίσει με το να προβάλει τα στατιστικά ή όχι.
         while True:
-            try:choice=int(input("How would you like to continue?(1=continue,2=edit activities)"))
+            try:choice=int(input("How would you like to continue?(1=continue,2=only feasible activities)"))
             except ValueError:
                 print("Wrong type of value inserted.Try again.")
                 continue
             if choice==1:
                 break
             elif choice==2:
-                while True:
-                    edit(user)
-                    if len(user.activities) == 0:
-                        print("No activities found.")
-                        return
-                    totalact = len(user.activities)
-                    totaltime = 0
-                    remaintime = 0
-                    freetime = 0
-                    choretime = 0
-                    avgimport = 0
-                    countavg = 0
-                    mostimportact = 0
-                    longestact = 0
-                    for activity in user.activities:
-                        totaltime += activity.time
-                        avgimport += activity.importance
-                        countavg += 1
-                        if activity.type == 0:
-                            freetime += activity.time
-                        else:
-                            choretime += activity.time
-                        if activity.importance > mostimportact:
-                            mostimportact = activity.importance
-                            mostimportactname = activity.name
-                        if activity.time > longestact:
-                            longestact = activity.time
-                            longestactname = activity.name
-                    avgimport = avgimport / countavg
-                    remaintime = user.total_hours - (choretime + freetime)
-                    if remaintime >= 0:
-                        break
-                    else:
-                        print("WARNING:Weekly schedule overload detected again.")
+                showfeasible(user)
+                return
             else:
                 print("Please input only 1/2 values.")
     print("Total activities:",totalact)
@@ -363,7 +350,7 @@ def stats(user):
     print("Most important activity:",mostimportactname)
     print("Longest activity:",longestactname)
     while True:
-        choice = input("Would you like to display graphical statistics? (yes/no):")
+        choice = input("Would you like to display graphical statistics? (yes/no):")    #Εδώ άμα ο χρήστης θέλει μπορεί να δει τα στατιστικά με ένα γράφημα(πίτα).
         if choice.lower()=="yes" or choice.lower()=="no":
             break
         else:
@@ -371,28 +358,38 @@ def stats(user):
     if choice.lower() =="no":
         return
     else:
+        feasible_free, feasible_chore = showfeasible(user)
         labels = ["Free Time", "Chores"]
-        sizes = [freetime, choretime]
+        sizes = [feasible_free, feasible_chore]
         plt.pie(sizes, labels=labels, autopct="%1.1f%%")
         plt.title("Weekly Time Distribution")
         plt.show()
 
-def showfeasible(user):
+def showfeasible(user):     #Εδώ δείχνει τις πιο σημαντικές  activities που χωράνε μέσα στον εβδομαδιαίο χρόνο που έχει δώσει ο χρήστης.
     if len(user.activities) == 0:
         print("No activities found.")
         return
     if len(user.activities) == 1:
-        print(user.activities[0].name)
+        activity = user.activities[0]
+        print("Name:", activity.name)
+        print("Importance:", activity.importance)
+        print("Time:", activity.time)
+        if activity.type == 0:
+            return activity.time, 0
+        else:
+            return 0, activity.time
         return
     count=0
+    feasible_chore = 0
+    feasible_free = 0
     for i in range(len(user.activities) - 1):
         if user.activities[i].importance < user.activities[i + 1].importance:
             count=1
     if count== 1:
         while True:
-            answer=input("The activity list is not sorted.Would you like it to get sorted?(Yes/No):")
+            answer=input("The activity list is not sorted.Would you like it to get sorted?(Yes/No):")         #Σε περίπτωση που η λίστα δεν είναι ταξινομένη ο χρήστης έχει την επιλογή να την ταξινομήσει.
             if answer.lower()=="yes":
-                #sort(user)
+                sort_activities(user)
                 print("The list has been sorted.")
                 break
             elif answer.lower()=="no":
@@ -407,10 +404,52 @@ def showfeasible(user):
             print("Importance:", activity.importance)
             print("Time:", activity.time)
             totaltime=totaltime-activity.time
+            if activity.type == 0:
+                feasible_free += activity.time
+            else:
+                feasible_chore += activity.time
     print("Remaining time:", totaltime)
+    return feasible_free, feasible_chore
 
-def save(user):
-    filename = user.name + ".txt"
+
+def sort_activities(user):
+    if len(user.activities) == 0:
+        print("No activities found to sort.")
+        return
+    elif len(user.activities)==1:
+        print("There is only one activity in the list")
+        return
+    user.activities.sort(key=lambda x: (x.importance, x.type, x.time), reverse=True)
+
+    print("Activities sorted successfully by importance and type!")
+
+    while True:
+        try:
+            choice = int(input("Would you like to see the sorted activities? (1=Yes, 0=No): "))
+        except ValueError:
+            print("Invalid input. Please enter 1 for Yes or 0 for No.")
+            continue
+
+        if choice == 1 or choice == 0:
+            break
+        else:
+            print("Please enter only 0 or 1.")
+
+    if choice == 1:
+        print("\n" + "=" * 45)
+        print("SORTED WEEKLY ACTIVITIES")
+        print("=" * 45)
+        for activity in user.activities:
+            cat_name = "Chore" if activity.type == 1 else "Free Time"
+            print("Name:", activity.name,
+                  "| Importance:", activity.importance,
+                  "| Type:", cat_name,
+                  "| Time:", activity.time, "h")
+            print("-" * 45)
+
+
+def save(user):     #Εδώ αποθηκεύουμε τα στοιχεία ενός χρήστη σε txt αρχείο.
+    filename = str(user.name) + ".txt"
     file = open(filename, "w")
     file.write(user.name + "\n")
     file.write(str(user.total_hours) + "\n")
@@ -425,9 +464,13 @@ def save(user):
     file.close()
     print("Data saved successfully.")
 
-def load():
+def load():        #Εδώ φορτώνουμε τα στοιχεία ενός χρήστη από ένα αρχείο.
     filename = input("Enter filename: ")
-    file = open(filename, "r")
+    try:
+        file = open(filename, "r")
+    except FileNotFoundError:
+        print("File not found.")
+        return None
     username = file.readline().strip()
     total_hours = float(file.readline().strip())
     user = User(username, total_hours)
@@ -459,18 +502,15 @@ while True:
     else:
         print("Please enter values equal to 0 or 1")
 if choice == 1:
-    username= input("Please enter your username")
-    total=int(input("Please input your total available time this week in the form of hours "))
-    while total < 0 or total > 119:  # ο μέγιστος συνολικός χρόνος που μπορεί κάποιος να έχει μέσα σε μια βδομάδα πλην τον χρόνο για ύπνο
-        print("Wrong value inserted")
-        total = int(input("Please input your total available time this week in the form of hours "))
-    user = User(username, total)
+    user =input_user()
 else:
     user=load()
+    if  user == None :
+        user=input_user()
 
 while True:
     menu()
-    while True: #εδώ ελέγχω άμα ο χρήστης δώσει λάθος τύπο μεταβλητής ώστε να εμποδίσω το σύστημα από το να κρασάρει και να περάσω μόνο αποδεκτές επιλογές
+    while True:      #εδώ ελέγχω άμα ο χρήστης δώσει λάθος τύπο μεταβλητής ώστε να εμποδίσω το σύστημα από το να κρασάρει και να περάσω μόνο αποδεκτές επιλογές
          try:
              choice=int(input("Enter your choice"))
          except ValueError:
@@ -494,14 +534,15 @@ while True:
         stats(user)
     elif choice ==7:
         showfeasible(user)
-    #elif choice ==8:
-
+    elif choice ==8:
+        sort_activities(user)
     elif choice ==9:
         save(user)
     elif choice ==10:
-        load()
-
-    #elif choice ==0:
+        user=load()
+    elif choice ==0:
+        print("Thank you for using the app")
+        break
 
 
 
